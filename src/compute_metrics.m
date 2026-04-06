@@ -1,9 +1,13 @@
-function m = compute_metrics(err_vec, is_los)
-% COMPUTE_METRICS Computes RMSE, CEP, and empirical CDF from error values.
+function m = compute_metrics(err_vec, is_los, opts)
+% COMPUTE_METRICS Computes RMSE, CEP, and empirical CDF from metric values.
 %
 % INPUT
-%   err_vec : [N x 1] double   non-negative error values
+%   err_vec : [N x 1] double   metric vector
 %   is_los  : [N x 1] logical  LoS mask
+%   opts    : struct (optional)
+%       .force_abs : logical (default true)
+%           true  -> use abs(err_vec) for RMSE/CEP/CDF
+%           false -> keep signed/raw err_vec for RMSE/CEP/CDF
 %
 % OUTPUT
 %   m.rmse      : scalar
@@ -14,7 +18,17 @@ function m = compute_metrics(err_vec, is_los)
 %   m.cdf_x     : [K x 1] sorted error values
 %   m.cdf_y     : [K x 1] cumulative probabilities
 
-err = abs(err_vec(:));
+if nargin < 3 || isempty(opts)
+    opts = struct();
+end
+if ~isfield(opts, 'force_abs')
+    opts.force_abs = true;
+end
+
+err = err_vec(:);
+if opts.force_abs
+    err = abs(err);
+end
 if nargin < 2 || isempty(is_los)
     is_los = true(size(err));
 else
@@ -60,4 +74,3 @@ else
     r = sqrt(mean(vals.^2, 'omitnan'));
 end
 end
-

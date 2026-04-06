@@ -43,6 +43,14 @@ T = table(Polarization, Scenario, Ranging_RMSE_m, DoA_RMSE_deg, ...
     MRR_mean_dB, Pos_RMSE_m, Pos_CEP67_m, Pos_CEP95_m);
 
 out_csv = fullfile(cfg.results_dir, 'summary_table.csv');
-writetable(T, out_csv);
+try
+    writetable(T, out_csv);
+catch ME
+    fallback_csv = fullfile(cfg.results_dir, ...
+        ['summary_table_' datestr(now, 'yyyymmdd_HHMMSS') '.csv']);
+    warning('generate_summary_table:writeFallback', ...
+        'Failed to write %s (%s). Writing fallback file: %s', ...
+        out_csv, ME.message, fallback_csv);
+    writetable(T, fallback_csv);
 end
-
+end

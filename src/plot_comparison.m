@@ -24,10 +24,23 @@ metric_lp = double(results_lp.(metric_field)(:));
 [x_lp, y_lp] = local_cdf(metric_lp);
 
 fig = figure('Visible', 'off', 'Color', 'w');
-plot(x_cp, y_cp, 'b-', 'LineWidth', 1.8); hold on;
-plot(x_lp, y_lp, 'r--', 'LineWidth', 1.8);
+hold on;
+legend_items = {};
+if ~isempty(x_cp)
+    plot(x_cp, y_cp, 'b-', 'LineWidth', 1.8);
+    legend_items{end+1} = 'CP'; %#ok<AGROW>
+end
+if ~isempty(x_lp)
+    plot(x_lp, y_lp, 'r--', 'LineWidth', 1.8);
+    legend_items{end+1} = 'LP'; %#ok<AGROW>
+end
+if isempty(legend_items)
+    text(0.5, 0.5, 'No valid samples', 'HorizontalAlignment', 'center');
+end
 grid on;
-legend({'CP', 'LP'}, 'Location', 'best');
+if ~isempty(legend_items)
+    legend(legend_items, 'Location', 'best');
+end
 title(sprintf('Scenario %s - %s', scenario, stage_label));
 xlabel(stage_label);
 ylabel('CDF');
@@ -74,4 +87,3 @@ switch label
         out = regexprep(out, '^_|_$', '');
 end
 end
-

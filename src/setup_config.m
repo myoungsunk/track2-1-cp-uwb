@@ -38,6 +38,21 @@ cfg.theta_tilt_deg = 45;
 cfg.rssd_lut_step = 0.1;
 cfg.doa_range_deg = [-90, 90];
 
+% ---- Stage 2/4: DoA convention + validity gating ----
+cfg.doa = struct();
+cfg.doa.sign_correction = struct();
+cfg.doa.sign_correction.CP = -1;   % CP guide inc_ang sign is opposite to GT azimuth
+cfg.doa.sign_correction.LP = +1;   % LP keeps native sign (currently low-correlation in practice)
+cfg.doa.validity_corr_threshold = 0.30;
+cfg.doa.invalidate_positioning_if_low_corr = true;
+
+% ---- Stage 2: external RSSD guide files ----
+cfg.guide = struct();
+cfg.guide.use_external = true;
+cfg.guide.fallback_to_theory = true;
+cfg.guide.cp_csv = 'E:\0. CP Antenna\CP_sbr_re\0.step1_ranging+Los\inc_ang_RSSD_validation_patch.csv';
+cfg.guide.lp_csv = 'E:\0. CP Antenna\CP_sbr_re\0.step3_new_ffd_synthesis_data\step3\step3_baseline_inc_ang.csv';
+
 % ---- Scenario metadata ----
 cfg.scenarios = {'A', 'B', 'C'};
 cfg.pol_types = {'CP', 'LP'};
@@ -45,8 +60,20 @@ cfg.n_tags = 56;
 
 cfg.los_idx = struct();
 cfg.los_idx.A = 1:56;
-cfg.los_idx.B = 1:34;  % TODO: insert exact 34 LoS tag indices from simulation log
-cfg.los_idx.C = 1:21;  % TODO: insert exact 21 LoS tag indices from simulation log
+cfg.los_idx.B = [];    % fallback only (external label file is preferred)
+cfg.los_idx.C = [];    % fallback only (external label file is preferred)
+
+% ---- LoS/NLoS label source (external exported CSV) ----
+cfg.los_nlos = struct();
+cfg.los_nlos.use_external = true;
+cfg.los_nlos.class_field = 'geometric_class';  % 'geometric_class' | 'material_class'
+cfg.los_nlos.coord_tolerance_m = 1e-6;
+cfg.los_nlos.base_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'LOS_NLOS_EXPORT_20260405');
+cfg.los_nlos.all_csv = fullfile(cfg.los_nlos.base_dir, 'track23_all_scenarios_los_nlos.csv');
+cfg.los_nlos.scenario_csv = struct();
+cfg.los_nlos.scenario_csv.A = fullfile(cfg.los_nlos.base_dir, 'track23_scenario_a_los_nlos.csv');
+cfg.los_nlos.scenario_csv.B = fullfile(cfg.los_nlos.base_dir, 'track23_scenario_b_los_nlos.csv');
+cfg.los_nlos.scenario_csv.C = fullfile(cfg.los_nlos.base_dir, 'track23_scenario_c_los_nlos.csv');
 
 % ---- Paths ----
 script_dir = fileparts(mfilename('fullpath'));
@@ -57,4 +84,3 @@ if ~exist(cfg.results_dir, 'dir')
     mkdir(cfg.results_dir);
 end
 end
-

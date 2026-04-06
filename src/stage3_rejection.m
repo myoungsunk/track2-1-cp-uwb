@@ -18,12 +18,13 @@ function result = stage3_rejection(data, cfg)
 n_tags = data.n_tags;
 ratio_dB = nan(n_tags, 1);
 
-dt_s = 1 / (cfg.N_fft * cfg.delta_f);
-T_win_samples = max(1, round(cfg.fp_window_ns * 1e-9 / dt_s));
+% Convert fp_window_ns to sample count using explicit sample period in ns.
+sample_period_ns = 1e9 / (cfg.N_fft * cfg.delta_f);
+T_win_samples = max(1, round(cfg.fp_window_ns / sample_period_ns));
 
 for i = 1:n_tags
     [cir_mag, ~, d_axis_m] = compute_cir(data.S21_rx1(i, :).', cfg);
-    fp_idx = find_first_path_index(cir_mag, d_axis_m, cfg);
+    [fp_idx, ~] = extract_first_path(cir_mag, d_axis_m, cfg);
     fp_end_idx = min(fp_idx + T_win_samples - 1, numel(cir_mag));
 
     E_fp = sum(cir_mag(fp_idx:fp_end_idx).^2);
@@ -33,45 +34,19 @@ end
 
 is_los = logical(data.is_los(:));
 ratio_valid = ratio_dB(isfinite(ratio_dB));
+m = compute_metrics(ratio_dB, data.is_los, struct('force_abs', false));
 
 result = struct();
 result.ratio_dB = ratio_dB;
 result.mean_ratio_dB = mean(ratio_valid, 'omitnan');
 result.mean_los_dB = local_mean_subset(ratio_dB, is_los);
 result.mean_nlos_dB = local_mean_subset(ratio_dB, ~is_los);
-
-x = sort(ratio_valid, 'ascend');
-result.cdf_x = x;
-if isempty(x)
-    result.cdf_y = [];
-else
-    result.cdf_y = (1:numel(x)).' ./ numel(x);
-end
+result.cdf_x = m.cdf_x;
+result.cdf_y = m.cdf_y;
+result.cdf_basis = 'ratio_dB';
 
 result.pol_type = data.pol_type;
 result.scenario = data.scenario;
-end
-
-function fp_idx = find_first_path_index(cir_mag, d_axis_m, cfg)
-% FIND_FIRST_PATH_INDEX Finds first local peak above threshold after guard range.
-n = numel(cir_mag);
-threshold = cfg.fp_threshold_ratio * max(cir_mag);
-search_idx = find(d_axis_m >= cfg.fp_search_start_m);
-
-fp_idx = [];
-for k = search_idx(:).'
-    if k <= 1 || k >= n
-        continue;
-    end
-    if cir_mag(k) > threshold && cir_mag(k) > cir_mag(k-1) && cir_mag(k) > cir_mag(k+1)
-        fp_idx = k;
-        break;
-    end
-end
-
-if isempty(fp_idx)
-    [~, fp_idx] = max(cir_mag);
-end
 end
 
 function m = local_mean_subset(x, mask)
@@ -84,4 +59,3 @@ else
     m = mean(vals, 'omitnan');
 end
 end
-

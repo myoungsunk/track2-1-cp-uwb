@@ -25,6 +25,34 @@ n_tags = data.n_tags;
 pos_est_mm = nan(n_tags, 2);
 pos_gt_mm = data.pos_mm;
 
+if isfield(cfg, 'doa') && isfield(cfg.doa, 'invalidate_positioning_if_low_corr') ...
+        && cfg.doa.invalidate_positioning_if_low_corr ...
+        && isfield(s2_result, 'is_valid_for_positioning') ...
+        && ~s2_result.is_valid_for_positioning
+    warning('stage4_positioning:invalidDoA', ...
+        ['Skipping positioning for %s-%s due to invalid DoA ', ...
+         '(corr=%.3f below threshold).'], ...
+        data.pol_type, data.scenario, s2_result.corr_coef);
+    error_m = nan(n_tags, 1);
+    m = compute_metrics(error_m, data.is_los);
+
+    result = struct();
+    result.pos_est_mm = pos_est_mm;
+    result.pos_gt_mm = pos_gt_mm;
+    result.error_m = error_m;
+    result.rmse_m = m.rmse;
+    result.rmse_los_m = m.rmse_los;
+    result.rmse_nlos_m = m.rmse_nlos;
+    result.cep67_m = m.cep67;
+    result.cep95_m = m.cep95;
+    result.cdf_x = m.cdf_x;
+    result.cdf_y = m.cdf_y;
+    result.cdf_basis = 'error_m';
+    result.pol_type = data.pol_type;
+    result.scenario = data.scenario;
+    return;
+end
+
 for i = 1:n_tags
     d_m = s1_result.range_est_m(i);
     phi_rad = deg2rad(s2_result.doa_est_deg(i));
@@ -51,7 +79,7 @@ result.cep67_m = m.cep67;
 result.cep95_m = m.cep95;
 result.cdf_x = m.cdf_x;
 result.cdf_y = m.cdf_y;
+result.cdf_basis = 'error_m';
 result.pol_type = data.pol_type;
 result.scenario = data.scenario;
 end
-
