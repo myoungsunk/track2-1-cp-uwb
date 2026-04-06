@@ -25,6 +25,7 @@ cfg.window_type = 'hann';    % 'hann' | 'hamming' | 'rect'
 
 % ---- Geometry ----
 cfg.anchor_mm = [0, 0];      % anchor position [mm]
+cfg.anchor_boresight_deg = 0; % anchor boresight angle [deg] from +x axis
 
 % ---- First-path detection ----
 cfg.fp_threshold_ratio = 0.1;
@@ -45,6 +46,18 @@ cfg.doa.sign_correction.CP = -1;   % CP guide inc_ang sign is opposite to GT azi
 cfg.doa.sign_correction.LP = -1;   % LP uses same sign convention as CP for consistency
 cfg.doa.validity_corr_threshold = 0.30;
 cfg.doa.invalidate_positioning_if_low_corr = false;
+
+% ---- Stage 4: measurement-space fusion ----
+cfg.fusion = struct();
+cfg.fusion.method = 'measurement_space_wls';   % 'measurement_space_wls' | 'cartesian_direct'
+cfg.fusion.sigma_mode = 'from_stage_rmse';     % 'from_stage_rmse' | 'fixed'
+cfg.fusion.fixed_sigma_r_m = 0.25;             % used when sigma_mode='fixed'
+cfg.fusion.fixed_sigma_theta_deg = 10;         % used when sigma_mode='fixed'
+cfg.fusion.min_sigma_r_m = 1e-3;
+cfg.fusion.min_sigma_theta_deg = 1e-2;
+cfg.fusion.max_iter = 20;
+cfg.fusion.tol_step_m = 1e-6;
+cfg.fusion.damping = 1e-12;
 
 % ---- Stage 2: external RSSD guide files ----
 cfg.guide = struct();
