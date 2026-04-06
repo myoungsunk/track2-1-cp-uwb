@@ -42,9 +42,9 @@ cfg.doa_range_deg = [-90, 90];
 cfg.doa = struct();
 cfg.doa.sign_correction = struct();
 cfg.doa.sign_correction.CP = -1;   % CP guide inc_ang sign is opposite to GT azimuth
-cfg.doa.sign_correction.LP = +1;   % LP keeps native sign (currently low-correlation in practice)
+cfg.doa.sign_correction.LP = -1;   % LP uses same sign convention as CP for consistency
 cfg.doa.validity_corr_threshold = 0.30;
-cfg.doa.invalidate_positioning_if_low_corr = true;
+cfg.doa.invalidate_positioning_if_low_corr = false;
 
 % ---- Stage 2: external RSSD guide files ----
 cfg.guide = struct();
