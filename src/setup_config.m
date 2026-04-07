@@ -34,6 +34,10 @@ cfg.fp_search_start_m = 0.3;
 % ---- Stage 3: multipath window ----
 cfg.fp_window_ns = 5;
 
+% ---- Stage 3: first-path sharpness metric ----
+cfg.sharpness = struct();
+cfg.sharpness.exclusion_ns = 1.0;   % exclude +/- around FP peak when building background
+
 % ---- Stage 2: DoA / tilted tag ----
 cfg.theta_tilt_deg = 45;
 cfg.rssd_lut_step = 0.1;
@@ -45,7 +49,7 @@ cfg.doa.sign_correction = struct();
 cfg.doa.sign_correction.CP = -1;   % CP guide inc_ang sign is opposite to GT azimuth
 cfg.doa.sign_correction.LP = -1;   % LP uses same sign convention as CP for consistency
 cfg.doa.validity_corr_threshold = 0.30;
-cfg.doa.invalidate_positioning_if_low_corr = false;
+cfg.doa.invalidate_positioning_if_low_corr = true;
 
 % ---- Stage 4: measurement-space fusion ----
 cfg.fusion = struct();

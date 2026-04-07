@@ -1,0 +1,10 @@
+First-path detection parametric study summary
+
+Best by minimum |mean bias| (tie: mean RMSE):
+threshold=0.030, search_start=0.000 m, mean_rmse=0.5223 m, mean_bias=0.2743 m, abs_mean_bias=0.2743 m, mean_mae=0.3870 m, mean_p90=0.8554 m
+
+Best by minimum mean RMSE (tie: |mean bias|):
+threshold=0.050, search_start=0.000 m, mean_rmse=0.4451 m, mean_bias=0.3330 m, abs_mean_bias=0.3330 m, mean_mae=0.3404 m, mean_p90=0.7792 m
+
+Baseline (current cfg):
+threshold=0.100, search_start=0.300 m, mean_rmse=0.4451 m, mean_bias=0.3330 m, abs_mean_bias=0.3330 m, mean_mae=0.3404 m, mean_p90=0.7792 m

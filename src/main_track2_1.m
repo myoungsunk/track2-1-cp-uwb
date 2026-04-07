@@ -45,6 +45,8 @@ for s = 1:numel(cfg.scenarios)
         'DoA Error (deg)', scenario, cfg);
     plot_comparison(cp.s3, lp.s3, 'ratio_dB', ...
         'Multipath Rejection Ratio (dB)', scenario, cfg);
+    plot_comparison(cp.s3, lp.s3, 'sharpness_dB', ...
+        'FP Peak Sharpness (dB)', scenario, cfg);
     plot_comparison(cp.s4, lp.s4, 'error_m', ...
         '2D Positioning Error (m)', scenario, cfg);
 end
@@ -54,4 +56,3 @@ disp(T);
 
 save(fullfile(cfg.results_dir, 'all_results.mat'), 'all_results', 'cfg', 'T');
 fprintf('[DONE] Results saved to %s\n', cfg.results_dir);
-

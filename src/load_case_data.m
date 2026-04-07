@@ -28,8 +28,7 @@ if ~ismember(scenario, cfg.scenarios)
     error('load_case_data: invalid scenario "%s".', scenario);
 end
 
-filepath = fullfile(cfg.data_dir, sprintf('%s_case%s.csv', pol_type, scenario));
-assert(isfile(filepath), 'load_case_data: file not found: %s', filepath);
+filepath = resolve_case_filepath(pol_type, scenario, cfg);
 
 tbl = readtable(filepath, 'VariableNamingRule', 'preserve');
 if width(tbl) < 7
@@ -86,6 +85,56 @@ data.range_gt_m = range_gt_m;
 data.doa_gt_deg = doa_gt_deg;
 data.is_los = is_los;
 data.los_source = los_source;
+data.source_file = filepath;
+end
+
+function filepath = resolve_case_filepath(pol_type, scenario, cfg)
+% RESOLVE_CASE_FILEPATH Resolves one case file with flexible naming patterns.
+case_stem = sprintf('%s_case%s', pol_type, scenario);
+preferred_stems = { ...
+    case_stem, ...
+    [case_stem '_2rx'], ...
+    [case_stem '_new'] ...
+    };
+extensions = {'.csv', '.xlsx', '.xls'};
+
+for i = 1:numel(preferred_stems)
+    for j = 1:numel(extensions)
+        cand = fullfile(cfg.data_dir, [preferred_stems{i} extensions{j}]);
+        if isfile(cand)
+            filepath = cand;
+            return;
+        end
+    end
+end
+
+% Fallback: any file that starts with "<POL>_case<SCENARIO>" and supported ext.
+all_files = dir(fullfile(cfg.data_dir, [case_stem '*']));
+supported = false(numel(all_files), 1);
+for k = 1:numel(all_files)
+    if all_files(k).isdir
+        continue;
+    end
+    [~, ~, ext] = fileparts(all_files(k).name);
+    supported(k) = any(strcmpi(ext, extensions));
+end
+hits = all_files(supported);
+
+if numel(hits) == 1
+    filepath = fullfile(cfg.data_dir, hits(1).name);
+    return;
+end
+
+if isempty(hits)
+    error('load_case_data: file not found for %s-%s under %s', pol_type, scenario, cfg.data_dir);
+end
+
+% Multiple candidates: choose the most recently modified file.
+[~, idx] = max([hits.datenum]);
+filepath = fullfile(cfg.data_dir, hits(idx).name);
+warning('load_case_data:multipleCandidates', ...
+    ['Multiple files found for %s-%s. Using latest: %s'], ...
+    pol_type, scenario, filepath);
 end
 
 function [is_los, source] = resolve_los_mask(scenario, pos_mm, n_tags, cfg)

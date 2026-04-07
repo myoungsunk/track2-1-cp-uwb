@@ -80,6 +80,8 @@ switch label
         out = 'MRR_dB';
     case '2D Positioning Error (m)'
         out = '2D_Pos_Error_m';
+    case 'FP Peak Sharpness (dB)'
+        out = 'FP_Peak_Sharpness_dB';
     otherwise
         out = regexprep(label, '[\s\(\)/\\\-]+', '_');
         out = regexprep(out, '[^a-zA-Z0-9_]', '');
