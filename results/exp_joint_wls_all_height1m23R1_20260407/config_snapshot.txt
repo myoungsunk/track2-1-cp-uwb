@@ -1,0 +1,7 @@
+﻿65: cfg.doa.inverse_mode_by_pol.CP = 'branch_aware';
+66: cfg.doa.inverse_mode_by_pol.LP = 'branch_aware'; % LP guide mismatch ?꾪솕??湲곕낯 ?ㅼ젙
+99: cfg.fusion.doa_hypothesis_mode = 'joint_wls';     % 'single' | 'joint_wls' (multi-section DoA candidates)
+101: cfg.fusion.joint_theta.lambda_inv_cost = 1.0;
+102: cfg.fusion.joint_theta.lambda_cont_deg = 0.05;
+120: cfg.guide.cp_csv_candidates = { ...
+127: cfg.guide.lp_csv_candidates = { ...

@@ -54,5 +54,40 @@ end
 T = generate_summary_table(all_results, cfg);
 disp(T);
 
-save(fullfile(cfg.results_dir, 'all_results.mat'), 'all_results', 'cfg', 'T');
+label_summary = build_label_summary(all_results, cfg);
+if ~isempty(label_summary)
+    writetable(label_summary, fullfile(cfg.results_dir, 'label_summary_by_scenario.csv'));
+end
+
+save(fullfile(cfg.results_dir, 'all_results.mat'), 'all_results', 'cfg', 'T', 'label_summary');
 fprintf('[DONE] Results saved to %s\n', cfg.results_dir);
+
+if ~isempty(label_summary)
+    disp(label_summary);
+end
+
+function label_summary = build_label_summary(all_results, cfg)
+% BUILD_LABEL_SUMMARY Returns per-scenario LoS/NLoS counts used in analysis.
+scenario_col = strings(numel(cfg.scenarios), 1);
+los_col = nan(numel(cfg.scenarios), 1);
+nlos_col = nan(numel(cfg.scenarios), 1);
+
+ref_pol = cfg.pol_types{1};
+for i = 1:numel(cfg.scenarios)
+    scn = cfg.scenarios{i};
+    scenario_col(i) = string(scn);
+    if isfield(all_results, ref_pol) && isfield(all_results.(ref_pol), scn)
+        s1 = all_results.(ref_pol).(scn).s1;
+        if isfield(s1, 'n_los'), los_col(i) = s1.n_los; end
+        if isfield(s1, 'n_nlos'), nlos_col(i) = s1.n_nlos; end
+    end
+end
+
+if all(~isfinite(los_col)) && all(~isfinite(nlos_col))
+    label_summary = table();
+    return;
+end
+
+label_summary = table(scenario_col, los_col, nlos_col, ...
+    'VariableNames', {'Scenario', 'LoS_Count', 'NLoS_Count'});
+end
