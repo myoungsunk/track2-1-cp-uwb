@@ -12,8 +12,12 @@ script_dir = fileparts(mfilename('fullpath'));
 addpath(script_dir);
 
 cfg = setup_config();
+if isfield(cfg, 'stats') && isfield(cfg.stats, 'rng_seed') && isfinite(cfg.stats.rng_seed)
+    rng(cfg.stats.rng_seed, 'twister');
+end
 
 all_results = struct();
+all_data = struct();
 
 for p = 1:numel(cfg.pol_types)
     pol = cfg.pol_types{p};
@@ -31,6 +35,7 @@ for p = 1:numel(cfg.pol_types)
         all_results.(pol).(scenario).s2 = s2;
         all_results.(pol).(scenario).s3 = s3;
         all_results.(pol).(scenario).s4 = s4;
+        all_data.(pol).(scenario) = data;
     end
 end
 
@@ -59,7 +64,31 @@ if ~isempty(label_summary)
     writetable(label_summary, fullfile(cfg.results_dir, 'label_summary_by_scenario.csv'));
 end
 
-save(fullfile(cfg.results_dir, 'all_results.mat'), 'all_results', 'cfg', 'T', 'label_summary');
+counterfactual_table = table();
+if isfield(cfg, 'analysis') && isfield(cfg.analysis, 'enable_counterfactual') && cfg.analysis.enable_counterfactual
+    counterfactual_table = run_counterfactual_analysis(all_results, all_data, cfg);
+end
+
+fusion_ablation_table = table();
+if isfield(cfg, 'analysis') && isfield(cfg.analysis, 'enable_fusion_ablation') && cfg.analysis.enable_fusion_ablation
+    fusion_ablation_table = run_fusion_ablation(all_results, all_data, cfg);
+end
+
+run_manifest = capture_run_manifest(cfg);
+if isfield(cfg, 'manifest') && isfield(cfg.manifest, 'save_json') && cfg.manifest.save_json
+    manifest_json_path = fullfile(cfg.results_dir, 'run_manifest.json');
+    fid = fopen(manifest_json_path, 'w');
+    if fid > 0
+        fprintf(fid, '%s', jsonencode(run_manifest, 'PrettyPrint', true));
+        fclose(fid);
+    else
+        warning('main_track2_1:manifestWriteFailed', 'Failed to write %s', manifest_json_path);
+    end
+end
+
+save(fullfile(cfg.results_dir, 'all_results.mat'), ...
+    'all_results', 'all_data', 'cfg', 'T', 'label_summary', ...
+    'counterfactual_table', 'fusion_ablation_table', 'run_manifest');
 fprintf('[DONE] Results saved to %s\n', cfg.results_dir);
 
 if ~isempty(label_summary)

@@ -42,16 +42,30 @@ if isfield(inv_info, 'candidate_angle_deg')
 else
     doa_candidate_deg = doa_est_deg;
 end
+sign_autoflip_used = false;
+if isfield(cfg, 'doa') && isfield(cfg.doa, 'sign_autoflip_if_better') && cfg.doa.sign_autoflip_if_better
+    corr_now = compute_linear_corr(doa_est_deg, data.doa_gt_deg);
+    corr_flip = compute_linear_corr(-doa_est_deg, data.doa_gt_deg);
+    margin = local_get_struct_field(cfg.doa, 'sign_autoflip_margin', 0.05);
+    if isfinite(corr_flip) && (~isfinite(corr_now) || (corr_flip > corr_now + margin))
+        doa_est_deg = -doa_est_deg;
+        doa_est_affine_deg = -doa_est_affine_deg;
+        doa_candidate_deg = -doa_candidate_deg;
+        sign_applied = -sign_applied;
+        sign_autoflip_used = true;
+    end
+end
 
 doa_corr = compute_linear_corr(doa_est_deg, data.doa_gt_deg);
 rssd_corr = compute_linear_corr(rssd_dB, data.doa_gt_deg);
 doa_affine_corr = compute_linear_corr(doa_est_affine_deg, data.doa_gt_deg);
-is_valid_for_positioning = abs(doa_corr) >= cfg.doa.validity_corr_threshold;
+[is_valid_for_positioning, validity_metric, validity_mode] = ...
+    is_doa_valid_for_positioning(doa_corr, cfg.doa);
 if ~is_valid_for_positioning
     warning('stage2_doa:lowDoACorrelation', ...
-        ['Low DoA correlation for %s-%s (corr=%.3f < %.3f). ', ...
+        ['Low DoA correlation for %s-%s (corr=%.3f, mode=%s, threshold=%.3f). ', ...
          'Positioning can be invalid.'], ...
-        data.pol_type, data.scenario, doa_corr, cfg.doa.validity_corr_threshold);
+        data.pol_type, data.scenario, doa_corr, validity_mode, cfg.doa.validity_corr_threshold);
 end
 
 error_deg = wrap_to_180(doa_est_deg - data.doa_gt_deg);
@@ -82,10 +96,15 @@ result.scenario = data.scenario;
 result.guide_source = guide_source;
 result.inverse_mode = char(inverse_mode);
 result.sign_applied = sign_applied;
+result.sign_autoflip_used = sign_autoflip_used;
 result.corr_coef = doa_corr;
 result.corr_rssd_vs_gt = rssd_corr;
 result.corr_affine_vs_gt = doa_affine_corr;
 result.is_valid_for_positioning = is_valid_for_positioning;
+result.validity_metric = validity_metric;
+result.validity_mode = validity_mode;
+result.lut_num_segments = lut.num_segments;
+result.lut_is_globally_monotonic = lut.is_globally_monotonic;
 result.ambiguity_flag = inv_info.ambiguity_flag;
 result.best_branch_idx = inv_info.best_branch_idx;
 result.inv_residual = inv_info.residual;
@@ -250,6 +269,12 @@ lut.ang_raw = inc_sorted;
 lut.rssd_raw = rssd_sorted;
 lut.segments = segments;
 lut.affine_coeff = affine;
+lut.num_segments = numel(segments);
+lut.is_globally_monotonic = (numel(segments) == 1);
+if lut.num_segments > 1
+    warning('stage2_doa:nonMonotonicLUT', ...
+        'Guide LUT is non-monotonic (segments=%d). Branch-aware inverse is required.', lut.num_segments);
+end
 end
 
 function lut = build_lut_theory(cfg)
@@ -275,6 +300,8 @@ lut.ang_raw = ang_axis;
 lut.rssd_raw = rssd_curve;
 lut.segments = segments;
 lut.affine_coeff = affine;
+lut.num_segments = numel(segments);
+lut.is_globally_monotonic = (numel(segments) == 1);
 end
 
 function segments = build_segments(ang_axis, rssd_curve, cfg)

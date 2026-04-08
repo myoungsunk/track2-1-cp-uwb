@@ -1,0 +1,59 @@
+{
+  "generated_at": "2026-04-08 00:36:33 +0900",
+  "matlab_version": "25.2.0.3150157 (R2025b) Update 4",
+  "matlab_release": "2025b",
+  "computer": "PCWIN64",
+  "results_dir": "D:\\OneDrive - postech.ac.kr\\명선\\2026\\2. ISAC\\track3-cp-uwb-reliability_tilted2rx_project_20260406\\src\\..\\results",
+  "data_dir": "D:\\OneDrive - postech.ac.kr\\명선\\2026\\2. ISAC\\track3-cp-uwb-reliability_tilted2rx_project_20260406\\src\\..\\data",
+  "seed": 2.0260408E+7,
+  "git_commit": "2a99029",
+  "git_branch": "track-2-1",
+  "git_dirty": "M results/all_results.mat\n M results/cdf_2D_Pos_Error_m_scenarioA.fig\n M results/cdf_2D_Pos_Error_m_scenarioA.png\n M results/cdf_2D_Pos_Error_m_scenarioB.fig\n M results/cdf_2D_Pos_Error_m_scenarioB.png\n M results/cdf_2D_Pos_Error_m_scenarioC.fig\n M results/cdf_2D_Pos_Error_m_scenarioC.png\n M results/cdf_DoA_Error_deg_scenarioA.fig\n M results/cdf_DoA_Error_deg_scenarioA.png\n M results/cdf_DoA_Error_deg_scenarioB.fig\n M results/cdf_DoA_Error_deg_scenarioB.png\n M results/cdf_DoA_Error_deg_scenarioC.fig\n M results/cdf_DoA_Error_deg_scenarioC.png\n M results/cdf_FP_Peak_Sharpness_dB_scenarioA.fig\n M results/cdf_FP_Peak_Sharpness_dB_scenarioA.png\n M results/cdf_FP_Peak_Sharpness_dB_scenarioB.fig\n M results/cdf_FP_Peak_Sharpness_dB_scenarioB.png\n M results/cdf_FP_Peak_Sharpness_dB_scenarioC.fig\n M results/cdf_FP_Peak_Sharpness_dB_scenarioC.png\n M results/cdf_MRR_dB_scenarioA.fig\n M results/cdf_MRR_dB_scenarioA.png\n M results/cdf_MRR_dB_scenarioB.fig\n M results/cdf_MRR_dB_scenarioB.png\n M results/cdf_MRR_dB_scenarioC.fig\n M results/cdf_MRR_dB_scenarioC.png\n M results/cdf_Ranging_Error_m_scenarioA.fig\n M results/cdf_Ranging_Error_m_scenarioA.png\n M results/cdf_Ranging_Error_m_scenarioB.fig\n M results/cdf_Ranging_Error_m_scenarioB.png\n M results/cdf_Ranging_Error_m_scenarioC.fig\n M results/cdf_Ranging_Error_m_scenarioC.png\n M results/cp_guide_vs_affine_line.fig\n M results/cp_guide_vs_affine_line.png\n M results/lp_guide_vs_affine_line.fig\n M results/lp_guide_vs_affine_line.png\n M results/lp_guide_vs_sim_incang_rssd_curve.fig\n M results/lp_guide_vs_sim_incang_rssd_curve.png\n M results/summary_table.csv\n M src/generate_summary_table.m\n M src/load_case_data.m\n M src/main_track2_1.m\n M src/setup_config.m\n M src/stage1_ranging.m\n M src/stage2_doa.m\n?? README.md\n?? data/LP_caseA_new_vpol.csv\n?? data/LP_caseB_new_vpol.csv\n?? data/LP_caseC_new_vpol.csv\n?? data/LP_guide_vpol.csv\n?? results/counterfactual_table.csv\n?? results/fusion_ablation_table.csv\n?? src/capture_run_manifest.m\n?? src/is_doa_valid_for_positioning.m\n?? src/run_counterfactual_analysis.m\n?? src/run_fusion_ablation.m\n?? tests/",
+  "toolboxes": [
+    {
+      "name": "5G Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "Antenna Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "Communications Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "DSP System Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "Deep Learning Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "MATLAB",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "Signal Processing Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "Statistics and Machine Learning Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    },
+    {
+      "name": "Wavelet Toolbox",
+      "version": "25.2",
+      "release": "(R2025b)"
+    }
+  ]
+}

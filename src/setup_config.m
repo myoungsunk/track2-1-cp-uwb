@@ -57,7 +57,10 @@ cfg.doa.sign_correction = struct();
 cfg.doa.sign_correction.CP = -1;  % CP guide inc_ang sign is opposite to GT azimuth
 cfg.doa.sign_correction.LP = -1;  % LP follows same sign convention as CP
 cfg.doa.validity_corr_threshold = 0.30;
+cfg.doa.validity_corr_mode = 'signed';  % 'signed' | 'abs'
 cfg.doa.invalidate_positioning_if_low_corr = true;
+cfg.doa.sign_autoflip_if_better = true;
+cfg.doa.sign_autoflip_margin = 0.05;
 
 % LUT inverse behavior
 cfg.doa.inverse_mode = 'branch_aware';  % global fallback: 'branch_aware' | 'legacy_single' | 'affine'
@@ -120,16 +123,13 @@ cfg.guide.fallback_to_theory = true;
 cfg.guide.cp_csv_candidates = { ...
     fullfile(cfg.data_dir, 'inc_ang_RSSD_validation_patch_height=1m_23R1.csv'), ...
     fullfile(cfg.data_dir, 'inc_ang_RSSD_validation_patch.csv'), ...
-    fullfile(cfg.data_dir, 'guide_cp_incang_rssd.csv'), ...
-    'E:\0. CP Antenna\CP_sbr_re\0.step1_ranging+Los\inc_ang_RSSD_validation_patch_height=1m_23R1.csv', ...
-    'E:\0. CP Antenna\CP_sbr_re\0.step1_ranging+Los\inc_ang_RSSD_validation_patch.csv' ...
+    fullfile(cfg.data_dir, 'guide_cp_incang_rssd.csv') ...
     };
 cfg.guide.lp_csv_candidates = { ...
+    fullfile(cfg.data_dir, 'step3_baseline_inc_ang_align.csv'), ...
     fullfile(cfg.data_dir, 'step3_baseline_inc_ang_height=1m_23R1.csv'), ...
     fullfile(cfg.data_dir, 'step3_baseline_inc_ang.csv'), ...
-    fullfile(cfg.data_dir, 'guide_lp_incang_rssd.csv'), ...
-    'E:\0. CP Antenna\CP_sbr_re\0.step3_new_ffd_synthesis_data\step3\step3_baseline_inc_ang_height=1m_23R1.csv', ...
-    'E:\0. CP Antenna\CP_sbr_re\0.step3_new_ffd_synthesis_data\step3\step3_baseline_inc_ang.csv' ...
+    fullfile(cfg.data_dir, 'guide_lp_incang_rssd.csv') ...
     };
 cfg.guide.column_candidates = struct();
 cfg.guide.column_candidates.inc_ang = {'inc_ang', 'inc ang', 'inc_ang_deg', 'anc_ang'};
@@ -149,6 +149,8 @@ cfg.los_idx.C = [];    % fallback only (external label file is preferred)
 % ---- LoS/NLoS label source (external exported CSV) ----
 cfg.los_nlos = struct();
 cfg.los_nlos.use_external = true;
+cfg.los_nlos.require_external = true;
+cfg.los_nlos.require_complete_tag_coverage = true;
 cfg.los_nlos.class_field = 'geometric_class';  % 'geometric_class' | 'material_class'
 cfg.los_nlos.coord_tolerance_m = 1e-6;
 cfg.los_nlos.base_dir = fullfile(script_dir, '..', 'LOS_NLOS_EXPORT_20260405');
@@ -157,5 +159,33 @@ cfg.los_nlos.scenario_csv = struct();
 cfg.los_nlos.scenario_csv.A = fullfile(cfg.los_nlos.base_dir, 'track23_scenario_a_los_nlos.csv');
 cfg.los_nlos.scenario_csv.B = fullfile(cfg.los_nlos.base_dir, 'track23_scenario_b_los_nlos.csv');
 cfg.los_nlos.scenario_csv.C = fullfile(cfg.los_nlos.base_dir, 'track23_scenario_c_los_nlos.csv');
+
+cfg.los_nlos.expected_counts = struct();
+cfg.los_nlos.expected_counts.A = struct('los', 56, 'nlos', 0);
+cfg.los_nlos.expected_counts.B = struct('los', 35, 'nlos', 21);
+cfg.los_nlos.expected_counts.C = struct('los', 21, 'nlos', 35);
+
+% ---- Range calibration ----
+cfg.range_calibration = struct();
+cfg.range_calibration.mode = 'fixed_offset';      % 'none' | 'fixed_offset' | 'los_median'
+cfg.range_calibration.fixed_offset_m = 0.0;       % positive value shortens estimated range
+cfg.range_calibration.min_los_count = 8;
+
+% ---- Cross-stage analysis ----
+cfg.analysis = struct();
+cfg.analysis.enable_counterfactual = true;
+cfg.analysis.enable_fusion_ablation = true;
+cfg.analysis.counterfactual_disable_doa_gate = true;
+
+% ---- Statistics / uncertainty ----
+cfg.stats = struct();
+cfg.stats.rng_seed = 20260408;
+cfg.stats.bootstrap_enabled = true;
+cfg.stats.bootstrap_n = 2000;
+cfg.stats.bootstrap_alpha = 0.05;
+
+% ---- Run manifest ----
+cfg.manifest = struct();
+cfg.manifest.save_json = true;
 end
 

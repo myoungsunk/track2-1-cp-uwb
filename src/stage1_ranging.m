@@ -50,6 +50,11 @@ for i = 1:n_tags
     range_est_rx2_m(i) = fp_range_rx2_m;
 end
 
+range_est_uncal_m = range_est_m;
+range_est_rx2_uncal_m = range_est_rx2_m;
+[range_est_m, range_est_rx2_m, cal_info] = local_apply_range_calibration( ...
+    range_est_m, range_est_rx2_m, data.range_gt_m, data.is_los, cfg);
+
 error_m = range_est_m - data.range_gt_m;
 abs_error_m = abs(error_m);
 m = compute_metrics(abs_error_m, data.is_los);
@@ -72,6 +77,8 @@ n_nlos = sum(~data.is_los);
 result = struct();
 result.range_est_m = range_est_m;
 result.range_est_rx2_m = range_est_rx2_m;
+result.range_est_uncal_m = range_est_uncal_m;
+result.range_est_rx2_uncal_m = range_est_rx2_uncal_m;
 result.range_gt_m = data.range_gt_m;
 result.error_m = error_m;
 result.abs_error_m = abs_error_m;
@@ -99,6 +106,66 @@ result.cdf_basis = 'abs_error_m';
 result.primary_ranging_rx = 'rx1';
 result.n_los = n_los;
 result.n_nlos = n_nlos;
+result.range_calibration_mode = cal_info.mode;
+result.range_calibration_offset_m = cal_info.offset_m;
+result.range_calibration_offset_rx2_m = cal_info.offset_rx2_m;
+result.range_calibration_los_count = cal_info.los_count;
 result.pol_type = data.pol_type;
 result.scenario = data.scenario;
+end
+
+function [r1_out, r2_out, info] = local_apply_range_calibration(r1_in, r2_in, r_gt, is_los, cfg)
+% LOCAL_APPLY_RANGE_CALIBRATION Applies optional global range offset correction.
+r1_out = r1_in;
+r2_out = r2_in;
+mode = "none";
+offset_m = 0;
+offset_rx2_m = 0;
+los_count = sum(logical(is_los(:)));
+
+if ~isfield(cfg, 'range_calibration') || ~isstruct(cfg.range_calibration)
+    info = struct('mode', char(mode), 'offset_m', offset_m, 'offset_rx2_m', offset_rx2_m, 'los_count', los_count);
+    return;
+end
+
+cal_cfg = cfg.range_calibration;
+if isfield(cal_cfg, 'mode') && ~isempty(cal_cfg.mode)
+    mode = lower(string(cal_cfg.mode));
+end
+mode = replace(mode, "_", "");
+min_los = local_get_field(cal_cfg, 'min_los_count', 8);
+los_mask = logical(is_los(:));
+
+switch char(mode)
+    case 'none'
+        % no-op
+    case 'fixedoffset'
+        offset_m = local_get_field(cal_cfg, 'fixed_offset_m', 0.0);
+        offset_rx2_m = local_get_field(cal_cfg, 'fixed_offset_rx2_m', offset_m);
+    case 'losmedian'
+        if sum(los_mask) >= min_los
+            offset_m = median(r1_in(los_mask) - r_gt(los_mask), 'omitnan');
+            offset_rx2_m = median(r2_in(los_mask) - r_gt(los_mask), 'omitnan');
+            if ~isfinite(offset_m), offset_m = 0; end
+            if ~isfinite(offset_rx2_m), offset_rx2_m = offset_m; end
+        else
+            warning('stage1_ranging:rangeCalibrationSkipped', ...
+                'los_median calibration skipped (LoS count %d < %d).', sum(los_mask), min_los);
+        end
+    otherwise
+        error('stage1_ranging:unknownRangeCalibrationMode', ...
+            'Unknown cfg.range_calibration.mode: %s', cal_cfg.mode);
+end
+
+r1_out = r1_in - offset_m;
+r2_out = r2_in - offset_rx2_m;
+info = struct('mode', char(mode), 'offset_m', offset_m, 'offset_rx2_m', offset_rx2_m, 'los_count', los_count);
+end
+
+function v = local_get_field(s, f, default_v)
+if isstruct(s) && isfield(s, f) && ~isempty(s.(f))
+    v = s.(f);
+else
+    v = default_v;
+end
 end
